@@ -9,7 +9,7 @@ It blinks the D7 LED on your Particle device. If you have an LED wired to D0, it
 
 
 // First, we're going to make some variables.
-int led2 = D0; // Instead of writing D0 over and over again, we'll write led1
+int led = D0; // Instead of writing D0 over and over again, we'll write led1
 // You'll need to wire an LED to this one to see it blink.
 const int blinkTime = 200;
 //int led2 = D7; // Instead of writing D7 over and over again, we'll write led2
@@ -17,6 +17,10 @@ const int blinkTime = 200;
 
 byte mac[6];
 int temp = 0;
+int brightness = 0;    // how bright the LED is
+int fadeAmount = 5;    // how many points to fade the LED by
+int delayTime = 0;
+int blinking = false;
 
 void setup() {
 
@@ -24,7 +28,7 @@ void setup() {
   // It's important you do this here, inside the setup() function rather than outside it or in the loop function.
 
   //pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
+  pinMode(led, OUTPUT);
   Particle.variable("tempValue", temp);
   temp = blinkTime;
 
@@ -48,6 +52,7 @@ void setup() {
 //The built-in delay function shown below safely interleaves required background activity, so arbitrarily long delays can safely be done if you need them.
 
 void loop() {
+  /*
   // To blink the LED, first we'll turn it on...
   //digitalWrite(led1, HIGH);
   digitalWrite(led2, HIGH);
@@ -61,7 +66,36 @@ void loop() {
 
   // Wait 1 second...
   delay(blinkTime);
+  */
   //temp = temp+1;
   temp = WiFi.RSSI();
   // And repeat!
+
+  // set the brightness of pin 9:
+  analogWrite(led, brightness);
+
+  // change the brightness for next time through the loop:
+  if (blinking == false) {
+    brightness = brightness + fadeAmount;
+  }
+
+  if (brightness == 255 && blinking == false) {
+    blinking = true;
+  }
+
+  if (blinking == true && delayTime < 40) {
+    delayTime++;
+    if (brightness == 255) {
+      brightness = 0;
+    } else {
+      brightness = 255;
+    }
+  } else if (blinking == true || blinking == false && brightness == 0) {
+    delayTime = 0;
+    fadeAmount = -fadeAmount;
+    blinking = false;
+  }
+
+  // wait for 30 milliseconds to see the dimming effect
+  delay(60);
 }
